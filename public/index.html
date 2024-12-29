@@ -651,7 +651,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="chart"></div>
+                        <div id="chart" style="position: relative"></div>
                     </div>
 
                     <div class="order-book">
@@ -748,8 +748,8 @@
         <script>
             // Global variables
             let socket;
-            let chart;
-            let candleSeries;
+            let chart = null;
+            let candleSeries = null;
             let prevPrice = 0;
             let currentPair = localStorage.getItem('currentPair') || 'BTC/USDT';
             let userEmail = localStorage.getItem('userEmail') || null;
@@ -831,6 +831,9 @@
 
                 socket.on('connect', () => {
                     console.log('Connected to server');
+                    if (!chart) {
+                        initializeChart();
+                    }
                     subscribeToPair(currentPair);
                 });
 
@@ -888,35 +891,15 @@
             // Pair change update
             function changePair(pair) {
                 currentPair = pair;
+                localStorage.setItem('currentPair', pair);
+
                 document.querySelectorAll('.pair-selector button').forEach((btn) => {
                     btn.classList.remove('active');
                     if (btn.textContent === pair) btn.classList.add('active');
                 });
 
-                // Update chart and order book titles
-                document.getElementById('chartTitle').textContent = `${pair} Chart`;
-                document.getElementById('orderBookPair').textContent = pair;
-
-                // Update trading form titles
-                const symbol = pair.split('/')[0];
-                document.querySelector('.buy-form h3').textContent = `Buy ${symbol}`;
-                document.querySelector('.sell-form h3').textContent = `Sell ${symbol}`;
-
-                // Reset price information
-                prevPrice = 0;
-                document.getElementById('lastPrice').textContent = '-';
-                document.getElementById('high24h').textContent = '-';
-                document.getElementById('low24h').textContent = '-';
-                document.getElementById('volume24h').textContent = '-';
-
                 // Restart the chart
-                if (chart) {
-                    chart.remove();
-                }
-                initializeChart();
-
-                // Subscribe to the new pair
-                subscribeToPair(pair);
+                setTimeout(initializeChart, 100);
             }
 
             function subscribeToPair(pair) {
@@ -1054,55 +1037,55 @@
             }
 
             function initializeChart() {
+                // Clear previous chart and series
+                if (chart) {
+                    chart.remove();
+                    chart = null;
+                    candleSeries = null;
+                }
+
                 const chartContainer = document.getElementById('chart');
 
-                chart = LightweightCharts.createChart(chartContainer, {
+                // Clear the container
+                chartContainer.innerHTML = '';
+
+                const chartProperties = {
+                    width: chartContainer.clientWidth,
+                    height: 500,
                     layout: {
                         background: { color: '#242424' },
                         textColor: '#DDD',
                     },
                     grid: {
-                        vertLines: { color: '#444' },
-                        horzLines: { color: '#444' },
-                    },
-                    crosshair: {
-                        mode: LightweightCharts.CrosshairMode.Normal,
-                    },
-                    rightPriceScale: {
-                        borderColor: '#444',
-                        scaleMargins: {
-                            top: 0.1,
-                            bottom: 0.1,
-                        },
+                        vertLines: { color: '#2B2B2B' },
+                        horzLines: { color: '#2B2B2B' },
                     },
                     timeScale: {
-                        borderColor: '#444',
                         timeVisible: true,
-                        secondsVisible: false,
+                        secondsVisible: true,
                     },
-                });
-
-                candleSeries = chart.addCandlestickSeries({
-                    upColor: '#4CAF50',
-                    downColor: '#FF4444',
-                    borderUpColor: '#4CAF50',
-                    borderDownColor: '#FF4444',
-                    wickUpColor: '#4CAF50',
-                    wickDownColor: '#FF4444',
-                });
-
-                // Set chart size according to the container
-                const resizeChart = () => {
-                    const container = document.querySelector('.chart-container');
-                    const headerHeight = document.querySelector('.chart-header').offsetHeight;
-                    chart.resize(
-                        container.offsetWidth - 40, // subtract padding
-                        container.offsetHeight - headerHeight - 20 // subtract header and padding
-                    );
                 };
 
-                window.addEventListener('resize', resizeChart);
-                resizeChart();
+                // Create new chart
+                chart = LightweightCharts.createChart(chartContainer, chartProperties);
+                candleSeries = chart.addCandlestickSeries();
+
+                // Set chart size
+                const handleResize = () => {
+                    if (chart) {
+                        chart.applyOptions({
+                            width: chartContainer.clientWidth,
+                            height: 500,
+                        });
+                    }
+                };
+
+                // Add resize event listener
+                window.removeEventListener('resize', handleResize);
+                window.addEventListener('resize', handleResize);
+
+                // Set initial size
+                handleResize();
             }
 
             function updatePriceInfo(data) {
