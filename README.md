@@ -38,7 +38,7 @@ A real-time cryptocurrency trading platform simulation built with Node.js, Socke
 1. Clone the repository:
 
 ```bash
-git clone
+git clone https://github.com/ogunkirikci/realex-trading.git
 cd realex-api
 ```
 
