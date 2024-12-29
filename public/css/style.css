@@ -1,0 +1,38 @@
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d3748;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
+
+/* Input styles */
+input[type="number"] {
+    color: white;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    ring: 2px solid #4299e1;
+}
+
+/* Animations */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Hover effects */
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
